@@ -11,7 +11,7 @@
         area_attribute AS areaAttribute,
         longitude,
         latitude,
-        num_community AS nuCommunity,
+        num_community AS numCommunity,
         height,
         azimuth_community1 AS azimuthCommunity1,
         azimuth_community2 AS azimuthCommunity2,
