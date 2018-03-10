@@ -6,7 +6,7 @@
         from tab_base_station
         <where>
             <if test="address!=null and address!=''">
-                and room like CONCAT('%',#{address},'%')
+                and address_no like CONCAT('%',#{address},'%')
             </if>
         </where>
     </select>
