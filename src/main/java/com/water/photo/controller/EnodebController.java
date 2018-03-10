@@ -1,8 +1,8 @@
 package com.water.photo.controller;
 
 import com.guanweiming.common.ServerResponse;
-import com.water.photo.domain.Project;
-import com.water.photo.service.ProjectService;
+import com.water.photo.domain.Enodeb;
+import com.water.photo.service.EnodebService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,22 +15,22 @@ import java.util.List;
 /**
  * @author chezhu.xin
  */
-@Api(description = "项目接口")
-@RequestMapping("project")
+@Api(description = "Enodeb接口")
+@RequestMapping("enodeb")
 @RestController
-public class ProjectController {
-    private final ProjectService projectService;
+public class EnodebController {
+    private final EnodebService enodebService;
 
-    public ProjectController(ProjectService projectService) {
-        this.projectService = projectService;
+    public EnodebController(EnodebService enodebService) {
+        this.enodebService = enodebService;
     }
 
-    @ApiOperation("获取所有项目")
+    @ApiOperation("获取所有Enodeb")
     @GetMapping("")
-    public ServerResponse<List<Project>> getDeviceList(
+    public ServerResponse<List<Enodeb>> getDeviceList(
             @RequestParam(name = "size", defaultValue = "10") Integer size,
             @RequestParam(name = "page", defaultValue = "1") Integer page) {
-        return projectService.getAll(page, size);
+        return enodebService.getAll(page, size);
     }
 
 }

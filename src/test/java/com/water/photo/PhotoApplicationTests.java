@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -26,6 +27,7 @@ public class PhotoApplicationTests {
 
     @Test
     public void contextLoads() {
+        System.out.println("测试");
     }
 
 //    @Test
@@ -34,12 +36,11 @@ public class PhotoApplicationTests {
 //        params.setTitleRows(0);
 //        params.setHeadRows(1);
 //        List<Project> list = ExcelImportUtil.importExcel(
-//                new File("/D:/水印照片/工程数据.xlsx"),
+//                new File("/D:/水印照片/demo.xlsx"),
 //                Project.class, params);
 //        list.forEach(project -> projectMapper.insert(project));
 //        System.out.println(list.size());
 //        System.out.println(list.get(0));
-//        System.out.println(list.get(1));
 //    }
 //    @Test
 //    public void test3() {

@@ -5,7 +5,6 @@ import com.guanweiming.common.ServerResponse;
 import com.water.photo.domain.Device;
 import com.water.photo.mapper.DeviceMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +21,6 @@ public class DeviceService {
         this.deviceMapper = deviceMapper;
     }
 
-//    @Cacheable("deviceList")
     public ServerResponse<List<Device>> getAllDevice(Integer page, Integer size) {
         PageHelper.startPage(page,size);
         List<Device> deviceList = deviceMapper.selectAll();
