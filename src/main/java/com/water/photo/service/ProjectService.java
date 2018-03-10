@@ -21,9 +21,9 @@ public class ProjectService {
         this.projectMapper = projectMapper;
     }
 
-    public ServerResponse<List<Project>> getAll(Integer page, Integer size) {
+    public ServerResponse<List<Project>> getAll(Integer page, Integer size, String address) {
         PageHelper.startPage(page,size);
-        List<Project> deviceList = projectMapper.selectAll();
+        List<Project> deviceList = projectMapper.selectByOriginName(address);
         return ServerResponse.createBySuccess(deviceList);
     }
 }
