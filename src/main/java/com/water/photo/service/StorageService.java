@@ -5,9 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -24,5 +23,38 @@ public class StorageService {
         File save = new File(UPLOAD_DIR + prefix + "_" + file.getOriginalFilename());
         FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(save));
         return ServerResponse.createBySuccess();
+    }
+
+    public void showImage(HttpServletResponse response, String fileName) {
+        response.setContentType("image/png");
+
+
+        FileInputStream fis = null;
+        OutputStream os = null;
+        try {
+            fis = new FileInputStream(UPLOAD_DIR + fileName);
+            os = response.getOutputStream();
+            int count = 0;
+            byte[] buffer = new byte[1024 * 8];
+            while ((count = fis.read(buffer)) != -1) {
+                os.write(buffer, 0, count);
+                os.flush();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            close(fis);
+            close(os);
+        }
+    }
+
+    private void close(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
