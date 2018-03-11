@@ -20,7 +20,7 @@ public class StorageService {
     private static final String UPLOAD_DIR = "d:/upload/";
 
     public ServerResponse<String> upload(MultipartFile file, String fileName) throws IOException {
-        String prefix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String prefix = new SimpleDateFormat("yyyyMMddHHmmssSSSS").format(new Date());
         File save = new File(UPLOAD_DIR + prefix + "_" + file.getOriginalFilename());
         FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(save));
         return ServerResponse.createBySuccess();
