@@ -18,11 +18,12 @@ public class StorageService {
 
     private static final String UPLOAD_DIR = "d:/upload/";
 
-    public ServerResponse<String> upload(MultipartFile file, String fileName) throws IOException {
+    public ServerResponse<String> upload(MultipartFile file) throws IOException {
         String prefix = new SimpleDateFormat("yyyyMMddHHmmssSSSS").format(new Date());
-        File save = new File(UPLOAD_DIR + prefix + "_" + file.getOriginalFilename());
+        String fileName = prefix + "_" + file.getOriginalFilename();
+        File save = new File(UPLOAD_DIR + fileName);
         FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(save));
-        return ServerResponse.createBySuccess();
+        return ServerResponse.createBySuccess(fileName);
     }
 
     public void showImage(HttpServletResponse response, String fileName) {

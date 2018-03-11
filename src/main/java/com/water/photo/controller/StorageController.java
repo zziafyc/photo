@@ -24,11 +24,11 @@ public class StorageController {
     }
 
     @PostMapping("upload")
-    public ServerResponse<String> upload(MultipartFile file,String fileName) throws IOException {
+    public ServerResponse<String> upload(MultipartFile file) throws IOException {
         if (file == null) {
             return ServerResponse.createByErrorMessage("文件不能为空");
         }
-        return storageService.upload(file,fileName);
+        return storageService.upload(file);
     }
 
     @GetMapping("{fileName:.+}")
