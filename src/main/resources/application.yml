@@ -19,6 +19,10 @@ spring:
     cache-names: api_cache
     caffeine:
       spec: maximumSize=300,expireAfterWrite=2m
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 mybatis:
   mapperLocations: mappers/*.xml
 swagger:
