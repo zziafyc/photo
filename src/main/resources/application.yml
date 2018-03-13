@@ -8,12 +8,12 @@ spring:
     timeZone: GMT+8 # 时区设置
     defaultPropertyInclusion: non_empty
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/photo?useunicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false
-#    url: jdbc:mysql://www.guanweiming.com:3306/photo?useunicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false
-#    username: photo
-#    password: photo
-    username: root
-    password: root
+#    url: jdbc:mysql://127.0.0.1:3306/photo?useunicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false
+    url: jdbc:mysql://www.guanweiming.com:3306/photo?useunicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false
+    username: photo
+    password: photo
+#    username: root
+#    password: root
   cache:
     type: caffeine
     cache-names: api_cache
