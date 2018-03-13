@@ -27,4 +27,8 @@ public class DataService {
         }
         return ServerResponse.createBySuccess();
     }
+
+    public Data get(int id) {
+        return dataMapper.selectByPrimaryKey(id);
+    }
 }
