@@ -36,6 +36,14 @@ public interface Const {
             this.name = name;
         }
 
+        public static String getFileName(String id) {
+            Flow flow = getFlow(org.apache.commons.lang3.math.NumberUtils.toInt(id));
+            if(flow==null){
+                return null;
+            }
+            return flow.name;
+        }
+
         public int getId() {
             return id;
         }

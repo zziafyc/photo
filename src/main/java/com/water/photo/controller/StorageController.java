@@ -1,12 +1,15 @@
 package com.water.photo.controller;
 
+import com.google.gson.Gson;
 import com.guanweiming.common.ServerResponse;
 import com.water.photo.common.ZipUtils;
 import com.water.photo.domain.Data;
 import com.water.photo.service.DataService;
 import com.water.photo.service.StorageService;
+import com.water.photo.vo.ExportVo;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("storage")
 public class StorageController {
+
 
     private final StorageService storageService;
     private final DataService dataService;
@@ -46,9 +50,22 @@ public class StorageController {
     }
 
     @GetMapping("export")
-    public void exportZip(HttpServletResponse response) throws IOException {
-        String filePath = "d:/logs/";
-        ZipUtils.toZip(filePath, response.getOutputStream(), true);
+    public void exportZip(HttpServletResponse response, int id) throws IOException {
+        Data data = dataService.get(id);
+        String str = data == null ? "{}" : data.getContent();
+        JSONObject object = new JSONObject(str);
+        Gson gson = new Gson();
+        String content = object.getString("content");
+        ExportVo exportVo = gson.fromJson(content == null ? "{}" : content, ExportVo.class);
+        exportVo.getPhotos().forEach(storageService::copyFile);
+        log.info("文件拷贝结束");
+        log.info("开始生成图片excel");
+        storageService.exportPhoto(exportVo.getPhotos(),NumberUtils.toInt(exportVo.getProject_id()));
+        storageService.exportData(exportVo);
+        ZipUtils.toZip(StorageService.TEMP_DIR, response.getOutputStream(), true);
+        log.info("文件打包结束");
+//        FileUtil.deleteDir(StorageService.TEMP_DIR);
+        log.info("清空文件夹结束");
     }
 
     @GetMapping("content")
@@ -57,9 +74,11 @@ public class StorageController {
         String str = data == null ? "{}" : data.getContent();
         log.debug(str);
         JSONObject object = new JSONObject(str);
-        log.debug(object.toString());
-        log.debug(object.getString("content").toString());
-        return object.getString("content").toString();
+        Gson gson = new Gson();
+        String content = object.getString("content");
+        ExportVo exportVo = gson.fromJson(content == null ? "{}" : content, ExportVo.class);
+        log.debug(exportVo.toString());
+        return content;
     }
 
 
