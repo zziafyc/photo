@@ -111,10 +111,11 @@ public class StorageService {
         }
         String name = Const.Flow.getFileName(imageVo.getFlow_id());
         File in = new File(UPLOAD_DIR() + imageVo.getPic_path());
-        File out = new File(TEMP_DIR() + projectName + "/" + name + ".png");
-        if (!out.exists()) {
-            out.mkdirs();
+        File photoDir = new File(TEMP_DIR() + projectName + "/");
+        if (!photoDir.exists()) {
+            photoDir.mkdirs();
         }
+        File out = new File(TEMP_DIR() + projectName + "/" + name + ".png");
         try {
             FileCopyUtils.copy(in, out);
         } catch (IOException e) {
