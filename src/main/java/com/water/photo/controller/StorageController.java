@@ -12,7 +12,6 @@ import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,20 +57,15 @@ public class StorageController {
         Gson gson = new Gson();
         String content = object.getString("content");
         ExportVo exportVo = gson.fromJson(content == null ? "{}" : content, ExportVo.class);
-        exportVo.getPhotos().forEach(storageService::copyFile);
-        log.info("文件拷贝结束");
-        log.info("开始生成图片excel");
-        storageService.exportPhoto(exportVo.getPhotos(),NumberUtils.toInt(exportVo.getProject_id()));
-        log.info("导出数据");
-        storageService.exportData(exportVo);
-        ZipUtils.toZip(StorageService.TEMP_DIR, response.getOutputStream(), true);
-        log.info("文件打包结束");
-        FileUtil.deleteDir(StorageService.TEMP_DIR);
-        log.info("清空文件夹结束");
+        storageService.exportPhoto(exportVo.getPhotos(), NumberUtils.toInt(exportVo.getProject_id()));
+        String projectName = storageService.exportData(exportVo);
+        exportVo.getPhotos().forEach(photo -> storageService.copyFile(photo, projectName));
+        ZipUtils.toZip(storageService.TEMP_DIR(), response.getOutputStream(), true);
+        FileUtil.deleteDir(storageService.TEMP_DIR());
     }
 
     @GetMapping("content")
-    public String getContent(int id) throws JSONException {
+    public String getContent(int id) {
         Data data = dataService.get(id);
         String str = data == null ? "{}" : data.getContent();
         log.debug(str);

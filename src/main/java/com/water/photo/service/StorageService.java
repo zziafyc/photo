@@ -6,6 +6,7 @@ import cn.afterturn.easypoi.excel.entity.enmus.ExcelType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.guanweiming.common.ServerResponse;
+import com.guanweiming.common.StringUtil;
 import com.water.photo.common.Const;
 import com.water.photo.domain.BaseStation;
 import com.water.photo.domain.Project;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,8 +37,24 @@ import java.util.*;
 @Service
 public class StorageService {
 
-    public static final String UPLOAD_DIR = "d:/upload/";
-    public static final String TEMP_DIR = "d:/temp/";
+    @Value("${spring.profiles.active}")
+    private String run;
+
+    public String UPLOAD_DIR() {
+        if ("dev".equals(run)) {
+            return "d:/upload/";
+        } else {
+            return "c:/upload/";
+        }
+    }
+
+    public String TEMP_DIR() {
+        if ("dev".equals(run)) {
+            return "d:/temp/";
+        } else {
+            return "c:/temp/";
+        }
+    }
 
     private final ProjectMapper projectMapper;
     private final BaseStationMapper baseStationMapper;
@@ -49,7 +67,7 @@ public class StorageService {
     public ServerResponse<String> upload(MultipartFile file) throws IOException {
         String prefix = new SimpleDateFormat("yyyyMMddHHmmssSSSS").format(new Date());
         String fileName = prefix + "_" + file.getOriginalFilename();
-        File save = new File(UPLOAD_DIR + fileName);
+        File save = new File(UPLOAD_DIR() + fileName);
         FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(save));
         return ServerResponse.createBySuccess(fileName);
     }
@@ -61,7 +79,7 @@ public class StorageService {
         FileInputStream fis = null;
         OutputStream os = null;
         try {
-            fis = new FileInputStream(UPLOAD_DIR + fileName);
+            fis = new FileInputStream(UPLOAD_DIR() + fileName);
             os = response.getOutputStream();
             int count = 0;
             byte[] buffer = new byte[1024 * 8];
@@ -87,10 +105,16 @@ public class StorageService {
         }
     }
 
-    public void copyFile(ImageVo imageVo) {
+    public void copyFile(ImageVo imageVo, String projectName) {
+        if (StringUtil.isBlank(projectName)) {
+            projectName = "photo";
+        }
         String name = Const.Flow.getFileName(imageVo.getFlow_id());
-        File in = new File(UPLOAD_DIR + imageVo.getPic_path());
-        File out = new File(TEMP_DIR + name + ".png");
+        File in = new File(UPLOAD_DIR() + imageVo.getPic_path());
+        File out = new File(TEMP_DIR() + projectName + "/" + name + ".png");
+        if (!out.exists()) {
+            out.mkdirs();
+        }
         try {
             FileCopyUtils.copy(in, out);
         } catch (IOException e) {
@@ -98,15 +122,15 @@ public class StorageService {
         }
     }
 
-    public void exportPhoto(List<ImageVo> photos, int projectId) throws IOException {
+    public String exportPhoto(List<ImageVo> photos, int projectId) throws IOException {
         Map<String, ImageVo> map = Maps.newHashMap();
         photos.forEach(imageVo -> {
-            imageVo.setImagePath(UPLOAD_DIR + imageVo.getPic_path());
+            imageVo.setImagePath(UPLOAD_DIR() + imageVo.getPic_path());
             map.put(imageVo.getFlow_id(), imageVo);
         });
         Project project = projectMapper.selectByPrimaryKey(projectId);
         if (project == null) {
-            return;
+            return null;
         }
         List<ImageVo> voList = Lists.newArrayList();
         log.info(project.toString());
@@ -131,23 +155,25 @@ public class StorageService {
         voList.add(imageVo);
         Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("照片", "主体照片"),
                 ImageVo.class, voList);
-        FileOutputStream fos = new FileOutputStream(TEMP_DIR + "photo.xls");
+        FileOutputStream fos = new FileOutputStream(TEMP_DIR() + "photo.xls");
         workbook.write(fos);
         fos.close();
+        return project.getMainProjectAttribute();
     }
 
-    public void exportData(ExportVo exportVo) throws IOException {
+    public String exportData(ExportVo exportVo) throws IOException {
         Project project = projectMapper.selectByPrimaryKey(NumberUtils.toInt(exportVo.getProject_id()));
         BaseStation baseStation = baseStationMapper.selectByPrimaryKey(NumberUtils.toInt(exportVo.getBbu_id()));
         if (project == null || baseStation == null) {
-            return;
+            return null;
         }
         OtherDataVo otherDataVo = new OtherDataVo();
-        BeanUtils.copyProperties(exportVo.getPtn_port(),otherDataVo);
-        Workbook workbook = exportSheets(project, baseStation,exportVo.getDevices(),otherDataVo);
-        FileOutputStream fos = new FileOutputStream(TEMP_DIR + "设备数据.xls");
+        BeanUtils.copyProperties(exportVo.getPtn_port(), otherDataVo);
+        Workbook workbook = exportSheets(project, baseStation, exportVo.getDevices(), otherDataVo);
+        FileOutputStream fos = new FileOutputStream(TEMP_DIR() + "设备数据.xls");
         workbook.write(fos);
         fos.close();
+        return baseStation.getRoom();
     }
 
     private Workbook exportSheets(Project project, BaseStation baseStation, List<DeviceVo> deviceVoList, OtherDataVo otherDataVo) {
@@ -188,7 +214,7 @@ public class StorageService {
         ExportParams params4 = new ExportParams();
         params4.setSheetName("其他数据");
         Map<String, Object> dataMap4 = new HashMap<>();
-        dataMap4.put("title", params3);
+        dataMap4.put("title", params4);
         dataMap4.put("entity", OtherDataVo.class);
         dataMap4.put("data", Lists.newArrayList(otherDataVo));
 
