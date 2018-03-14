@@ -61,9 +61,11 @@
         window.open("storage/export?id=" + code);
         return false;
     }
+
     function search() {
-        table.ajax.url("storage/data?name=" +
-                $("#name").val()).draw();
+        var url = "storage/data?name=" + $("#name").val();
+        console.log(url);
+        table.ajax.url(url).draw();
         return false;
     }
 </script>
