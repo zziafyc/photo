@@ -2,6 +2,7 @@ package com.water.photo.controller;
 
 import com.google.gson.Gson;
 import com.guanweiming.common.ServerResponse;
+import com.water.photo.common.FileUtil;
 import com.water.photo.common.ZipUtils;
 import com.water.photo.domain.Data;
 import com.water.photo.service.DataService;
@@ -61,10 +62,11 @@ public class StorageController {
         log.info("文件拷贝结束");
         log.info("开始生成图片excel");
         storageService.exportPhoto(exportVo.getPhotos(),NumberUtils.toInt(exportVo.getProject_id()));
+        log.info("导出数据");
         storageService.exportData(exportVo);
         ZipUtils.toZip(StorageService.TEMP_DIR, response.getOutputStream(), true);
         log.info("文件打包结束");
-//        FileUtil.deleteDir(StorageService.TEMP_DIR);
+        FileUtil.deleteDir(StorageService.TEMP_DIR);
         log.info("清空文件夹结束");
     }
 

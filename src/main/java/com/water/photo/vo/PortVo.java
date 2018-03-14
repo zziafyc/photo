@@ -9,4 +9,5 @@ import lombok.Data;
 public class PortVo {
     private String thisPtn;
     private String topPtn;
+    private String remark;
 }
