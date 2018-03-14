@@ -3,14 +3,21 @@ package com.water.photo.service;
 import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
 import cn.afterturn.easypoi.excel.entity.enmus.ExcelType;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import com.guanweiming.common.ServerResponse;
 import com.guanweiming.common.StringUtil;
 import com.water.photo.common.Const;
 import com.water.photo.domain.BaseStation;
+import com.water.photo.domain.Data;
 import com.water.photo.domain.Project;
 import com.water.photo.mapper.BaseStationMapper;
+import com.water.photo.mapper.DataMapper;
 import com.water.photo.mapper.ProjectMapper;
 import com.water.photo.vo.DeviceVo;
 import com.water.photo.vo.ExportVo;
@@ -19,6 +26,7 @@ import com.water.photo.vo.OtherDataVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chezhu.xin
@@ -58,10 +67,12 @@ public class StorageService {
 
     private final ProjectMapper projectMapper;
     private final BaseStationMapper baseStationMapper;
+    private final DataMapper dataMapper;
 
-    public StorageService(ProjectMapper projectMapper, BaseStationMapper baseStationMapper) {
+    public StorageService(ProjectMapper projectMapper, BaseStationMapper baseStationMapper, DataMapper dataMapper) {
         this.projectMapper = projectMapper;
         this.baseStationMapper = baseStationMapper;
+        this.dataMapper = dataMapper;
     }
 
     public ServerResponse<String> upload(MultipartFile file) throws IOException {
@@ -123,7 +134,7 @@ public class StorageService {
         }
     }
 
-    public void exportPhoto(List<ImageVo> photos, int projectId,String stationName) throws IOException {
+    public void exportPhoto(List<ImageVo> photos, int projectId, String stationName) throws IOException {
         Map<String, ImageVo> map = Maps.newHashMap();
         photos.forEach(imageVo -> {
             imageVo.setImagePath(UPLOAD_DIR() + imageVo.getPic_path());
@@ -253,4 +264,48 @@ public class StorageService {
         System.out.println(NumberUtils.toDouble("0"));
         System.out.println(NumberUtils.toDouble("320.00"));
     }
+
+    public PageInfo<ExportVo> dataList(Integer page, Integer size) {
+        PageHelper.startPage(page, size);
+        PageHelper.orderBy("id desc");
+        List<Data> dataList = dataMapper.selectAll();
+        PageInfo pageInfo=new PageInfo<>(dataList);
+
+        List<ExportVo> exportVoList = Lists.newArrayList();
+        Gson gson = new Gson();
+        dataList.forEach(data -> {
+            String str = data == null ? "{}" : data.getContent();
+            if (data != null) {
+                JSONObject object = new JSONObject(str);
+
+                String content = object.getString("content");
+                ExportVo exportVo = gson.fromJson(content == null ? "{}" : content, ExportVo.class);
+                exportVo.setProjectName(getProjectName(exportVo.getBbu_id()));
+                exportVo.setId(data.getId());
+                exportVoList.add(exportVo);
+            }
+        });
+        pageInfo.setList(exportVoList);
+        return pageInfo;
+    }
+
+    public static final Cache<String, String> CACHE = CacheBuilder.newBuilder()
+            .initialCapacity(100)
+            .maximumSize(2000)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build();
+
+    private String getProjectName(String bbuId) {
+        if (CACHE.getIfPresent(bbuId) != null) {
+            return CACHE.getIfPresent(bbuId);
+        }
+        BaseStation station = baseStationMapper.selectByPrimaryKey(NumberUtils.toInt(bbuId));
+        if(station==null){
+            return null;
+        }
+        CACHE.put(bbuId, station.getRoom());
+        return CACHE.getIfPresent(bbuId);
+    }
+
+
 }

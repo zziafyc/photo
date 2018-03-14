@@ -1,7 +1,10 @@
 package com.water.photo.controller;
 
+import com.github.pagehelper.PageInfo;
 import com.google.gson.Gson;
 import com.guanweiming.common.ServerResponse;
+import com.water.photo.common.DataRequest;
+import com.water.photo.common.DataResponse;
 import com.water.photo.common.FileUtil;
 import com.water.photo.common.ZipUtils;
 import com.water.photo.domain.Data;
@@ -9,6 +12,7 @@ import com.water.photo.service.DataService;
 import com.water.photo.service.StorageService;
 import com.water.photo.vo.ExportVo;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
@@ -63,6 +67,13 @@ public class StorageController {
         exportVo.getPhotos().forEach(photo -> storageService.copyFile(photo, originSiteName));
         ZipUtils.toZip(storageService.TEMP_DIR(originSiteName), response.getOutputStream(), true);
         FileUtil.deleteDir(storageService.TEMP_DIR(originSiteName));
+    }
+
+    @ApiOperation("设备数据")
+    @GetMapping("data")
+    public DataResponse<ExportVo> dataList(DataRequest request) {
+        PageInfo<ExportVo> page = storageService.dataList(request.getPage(), request.getSize());
+        return new DataResponse<>(page, request.getDraw());
     }
 
     @GetMapping("content")

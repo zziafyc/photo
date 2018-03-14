@@ -25,6 +25,9 @@ spring:
       max-request-size: 50MB
   profiles:
     active: dev
+  freemarker:
+    suffix: .ftl
+    request-context-attribute: ctx
 mybatis:
   mapperLocations: mappers/*.xml
 swagger:

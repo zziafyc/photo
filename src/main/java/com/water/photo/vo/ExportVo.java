@@ -15,4 +15,7 @@ public class ExportVo {
 
     private List<ImageVo> photos;
     private List<DeviceVo> devices;
+
+    private String projectName;
+    private int id;
 }
