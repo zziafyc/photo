@@ -3,6 +3,7 @@ package com.water.photo.domain;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Date;
 
 /**
  * @author chezhu.xin
@@ -14,4 +15,6 @@ public class Data {
     @GeneratedValue(generator = "JDBC")
     private int id;
     private String content;
+    private String name;
+    private Date createTime;
 }

@@ -265,10 +265,10 @@ public class StorageService {
         System.out.println(NumberUtils.toDouble("320.00"));
     }
 
-    public PageInfo<ExportVo> dataList(Integer page, Integer size) {
+    public PageInfo<ExportVo> dataList(Integer page, Integer size, String name) {
         PageHelper.startPage(page, size);
         PageHelper.orderBy("id desc");
-        List<Data> dataList = dataMapper.selectAll();
+        List<Data> dataList = dataMapper.selectByName(name);
         PageInfo pageInfo=new PageInfo<>(dataList);
 
         List<ExportVo> exportVoList = Lists.newArrayList();
@@ -280,8 +280,12 @@ public class StorageService {
 
                 String content = object.getString("content");
                 ExportVo exportVo = gson.fromJson(content == null ? "{}" : content, ExportVo.class);
-                exportVo.setProjectName(getProjectName(exportVo.getBbu_id()));
+                if(StringUtil.isBlank(data.getName())){
+                    data.setName(getProjectName(exportVo.getProject_id()));
+                    dataMapper.updateByPrimaryKey(data);
+                }
                 exportVo.setId(data.getId());
+                exportVo.setProjectName(data.getName());
                 exportVoList.add(exportVo);
             }
         });
@@ -299,11 +303,12 @@ public class StorageService {
         if (CACHE.getIfPresent(bbuId) != null) {
             return CACHE.getIfPresent(bbuId);
         }
-        BaseStation station = baseStationMapper.selectByPrimaryKey(NumberUtils.toInt(bbuId));
-        if(station==null){
+//        BaseStation station = baseStationMapper.selectByPrimaryKey(NumberUtils.toInt(bbuId));
+        Project project = projectMapper.selectByPrimaryKey(NumberUtils.toInt(bbuId));
+        if(project==null){
             return null;
         }
-        CACHE.put(bbuId, station.getRoom());
+        CACHE.put(bbuId, project.getOriginalSiteName());
         return CACHE.getIfPresent(bbuId);
     }
 

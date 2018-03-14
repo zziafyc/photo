@@ -1,6 +1,16 @@
 <@override name="title">用户列表</@override>
 
-<@override name="header"></@override>
+<@override name="header">
+    <form class="form-inline">
+        <div class="form-group">
+            <label for="nickname">名称</label>
+            <input type="text" class="form-control" id="name"
+                   placeholder="搜索名称">
+        </div>
+        <button type="submit" class="btn btn-default" onclick="return search()">搜索
+        </button>
+    </form>
+</@override>
 
 
 <@override name="table">
@@ -8,6 +18,7 @@
            cellspacing="0" width="100%">
         <thead>
         <tr>
+            <th>id</th>
             <th>名称</th>
             <th>操作</th>
         </tr>
@@ -29,6 +40,7 @@
                 dataSrc: "data"
             },
             columns: [
+                {data: 'project_id', defaultContent: '', "searchable": true},
                 {data: 'projectName', defaultContent: '', "searchable": true},
                 {
                     data: 'id', render: function (data) {
@@ -47,6 +59,11 @@
 
     function exportStationInfo(code) {
         window.open("storage/export?id=" + code);
+        return false;
+    }
+    function search() {
+        table.ajax.url("storage/data?name=" +
+                $("#name").val()).draw();
         return false;
     }
 </script>

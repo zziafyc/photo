@@ -71,8 +71,8 @@ public class StorageController {
 
     @ApiOperation("设备数据")
     @GetMapping("data")
-    public DataResponse<ExportVo> dataList(DataRequest request) {
-        PageInfo<ExportVo> page = storageService.dataList(request.getPage(), request.getSize());
+    public DataResponse<ExportVo> dataList(DataRequest request,String name) {
+        PageInfo<ExportVo> page = storageService.dataList(request.getPage(), request.getSize(),name);
         return new DataResponse<>(page, request.getDraw());
     }
 
