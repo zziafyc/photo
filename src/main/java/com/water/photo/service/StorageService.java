@@ -48,11 +48,11 @@ public class StorageService {
         }
     }
 
-    public String TEMP_DIR() {
+    public String TEMP_DIR(String projectName) {
         if ("dev".equals(run)) {
-            return "d:/temp/";
+            return "d:/temp/" + projectName + "/";
         } else {
-            return "c:/temp/";
+            return "c:/temp/" + projectName + "/";
         }
     }
 
@@ -111,11 +111,11 @@ public class StorageService {
         }
         String name = Const.Flow.getFileName(imageVo.getFlow_id());
         File in = new File(UPLOAD_DIR() + imageVo.getPic_path());
-        File photoDir = new File(TEMP_DIR() + projectName + "/");
+        File photoDir = new File(TEMP_DIR(projectName) + "photos/");
         if (!photoDir.exists()) {
             photoDir.mkdirs();
         }
-        File out = new File(TEMP_DIR() + projectName + "/" + name + ".png");
+        File out = new File(TEMP_DIR(projectName) + "photos/" + name + ".png");
         try {
             FileCopyUtils.copy(in, out);
         } catch (IOException e) {
@@ -123,7 +123,7 @@ public class StorageService {
         }
     }
 
-    public String exportPhoto(List<ImageVo> photos, int projectId) throws IOException {
+    public void exportPhoto(List<ImageVo> photos, int projectId,String stationName) throws IOException {
         Map<String, ImageVo> map = Maps.newHashMap();
         photos.forEach(imageVo -> {
             imageVo.setImagePath(UPLOAD_DIR() + imageVo.getPic_path());
@@ -131,50 +131,68 @@ public class StorageService {
         });
         Project project = projectMapper.selectByPrimaryKey(projectId);
         if (project == null) {
-            return null;
+            return;
         }
         List<ImageVo> voList = Lists.newArrayList();
         log.info(project.toString());
         ImageVo imageVo = map.get("9");
-        imageVo.setName("1扇区(" + (int) NumberUtils.toDouble(project.getAzimuthCommunity1() + "") + "°)");
-        voList.add(map.get("9"));
+        if (imageVo != null) {
+            imageVo.setName("1扇区(" + (int) NumberUtils.toDouble(project.getAzimuthCommunity1() + "") + "°)");
+            voList.add(map.get("9"));
+        }
 
         log.info("2小区主方向照片");
         imageVo = map.get("10");
-        imageVo.setName("2扇区(" + (int) NumberUtils.toDouble(project.getAzimuthCommunity2() + "") + "°)");
-        voList.add(imageVo);
+        if (imageVo != null) {
+            imageVo.setName("2扇区(" + (int) NumberUtils.toDouble(project.getAzimuthCommunity2() + "") + "°)");
+            voList.add(imageVo);
+        }
 
         log.info("3小区主方向照片");
         imageVo = map.get("11");
-        imageVo.setName("3扇区(" + (int) NumberUtils.toDouble(project.getAzimuthCommunity3()) + "°)");
-        voList.add(imageVo);
+        if (imageVo != null) {
+            imageVo.setName("3扇区(" + (int) NumberUtils.toDouble(project.getAzimuthCommunity3()) + "°)");
+            voList.add(imageVo);
+        }
 
         log.info("天面整体照片");
-        imageVo = map.get("12");
-        imageVo.setName("天面整体照片");
-
-        voList.add(imageVo);
+        if (imageVo != null) {
+            imageVo = map.get("12");
+            imageVo.setName("天面整体照片");
+            voList.add(imageVo);
+        }
         Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("照片", "主体照片"),
                 ImageVo.class, voList);
-        FileOutputStream fos = new FileOutputStream(TEMP_DIR() + "photo.xls");
+        File fileDir = new File(TEMP_DIR(stationName));
+        if (!fileDir.exists()) {
+            fileDir.mkdirs();
+        }
+        File file = new File(TEMP_DIR(stationName) + "photo.xls");
+        FileOutputStream fos = new FileOutputStream(file);
         workbook.write(fos);
         fos.close();
-        return project.getMainProjectAttribute();
     }
 
     public String exportData(ExportVo exportVo) throws IOException {
         Project project = projectMapper.selectByPrimaryKey(NumberUtils.toInt(exportVo.getProject_id()));
         BaseStation baseStation = baseStationMapper.selectByPrimaryKey(NumberUtils.toInt(exportVo.getBbu_id()));
+
         if (project == null || baseStation == null) {
             return null;
         }
+        String originSiteName = project.getOriginalSiteName();
+
         OtherDataVo otherDataVo = new OtherDataVo();
         BeanUtils.copyProperties(exportVo.getPtn_port(), otherDataVo);
         Workbook workbook = exportSheets(project, baseStation, exportVo.getDevices(), otherDataVo);
-        FileOutputStream fos = new FileOutputStream(TEMP_DIR() + "设备数据.xls");
+        File outputDir = new File(TEMP_DIR(originSiteName));
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
+        FileOutputStream fos = new FileOutputStream(TEMP_DIR(originSiteName) + "设备数据.xls");
         workbook.write(fos);
         fos.close();
-        return baseStation.getRoom();
+        return originSiteName;
     }
 
     private Workbook exportSheets(Project project, BaseStation baseStation, List<DeviceVo> deviceVoList, OtherDataVo otherDataVo) {

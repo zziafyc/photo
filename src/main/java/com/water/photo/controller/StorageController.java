@@ -57,11 +57,12 @@ public class StorageController {
         Gson gson = new Gson();
         String content = object.getString("content");
         ExportVo exportVo = gson.fromJson(content == null ? "{}" : content, ExportVo.class);
-        storageService.exportPhoto(exportVo.getPhotos(), NumberUtils.toInt(exportVo.getProject_id()));
-        String projectName = storageService.exportData(exportVo);
-        exportVo.getPhotos().forEach(photo -> storageService.copyFile(photo, projectName));
-        ZipUtils.toZip(storageService.TEMP_DIR(), response.getOutputStream(), true);
-        FileUtil.deleteDir(storageService.TEMP_DIR());
+        log.info(exportVo.toString());
+        String originSiteName = storageService.exportData(exportVo);
+        storageService.exportPhoto(exportVo.getPhotos(), NumberUtils.toInt(exportVo.getProject_id()), originSiteName);
+        exportVo.getPhotos().forEach(photo -> storageService.copyFile(photo, originSiteName));
+        ZipUtils.toZip(storageService.TEMP_DIR(originSiteName), response.getOutputStream(), true);
+        FileUtil.deleteDir(storageService.TEMP_DIR(originSiteName));
     }
 
     @GetMapping("content")
