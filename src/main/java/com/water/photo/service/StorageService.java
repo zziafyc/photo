@@ -51,7 +51,7 @@ public class StorageService {
 
     public String UPLOAD_DIR() {
         if ("dev".equals(run)) {
-            return "d:/upload/";
+            return "e:/upload/";
         } else {
             return "c:/upload/";
         }
@@ -59,8 +59,14 @@ public class StorageService {
 
     public String TEMP_DIR(String projectName) {
         if ("dev".equals(run)) {
-            return "d:/temp/" + projectName + "/";
+            if(StringUtil.isBlank(projectName)){
+                return "e:/temp/";
+            }
+            return "e:/temp/" + projectName + "/";
         } else {
+            if(StringUtil.isBlank(projectName)){
+                return "c:/temp/";
+            }
             return "c:/temp/" + projectName + "/";
         }
     }

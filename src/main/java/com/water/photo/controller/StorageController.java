@@ -14,6 +14,7 @@ import com.water.photo.vo.ExportVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.util.URLEncoder;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
@@ -65,6 +66,7 @@ public class StorageController {
         String originSiteName = storageService.exportData(exportVo);
         storageService.exportPhoto(exportVo.getPhotos(), NumberUtils.toInt(exportVo.getProject_id()), originSiteName);
         exportVo.getPhotos().forEach(photo -> storageService.copyFile(photo, originSiteName));
+        response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.DEFAULT.encode(originSiteName,"utf-8") + ".zip");
         ZipUtils.toZip(storageService.TEMP_DIR(originSiteName), response.getOutputStream(), true);
         FileUtil.deleteDir(storageService.TEMP_DIR(originSiteName));
     }
